@@ -1,5 +1,7 @@
 # Hominid Phylogenetic Forest
 
+#### Justin Wildman, for BINF 6251 at Northeastern University in Spring 2026
+
 ## Research Question: 
 Is there a gene shared by members of the family hominidae that gives rise to a different phylogenetic tree than is commonly accepted? 
 
