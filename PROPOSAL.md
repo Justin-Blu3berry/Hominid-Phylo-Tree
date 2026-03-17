@@ -50,13 +50,13 @@ I also need a way to quantify or evaluate how similar trees are. For comparing t
 │   │   └── <plaintext file for the Newick representations of this gene's graph structure>
 │   ├── ...
 │   └── <this is done for all genes>
-├── data (this will not be on the repo because this many fasta files ought not be stored on github)
+├── data (only the toy data will be stored on the repo because this many fasta files ought not be stored on github)
 │   ├── <species name>
 │   │   ├── gene_1.fasta
 │   │   ├── ...
 │   │   └── <this is done for all genes>
 │   ├── ...
-│   └── <this is done for all species>
+│   └── <this is done for all species, including the toy data>
 ├── PROPOSAL.md
 ├── CONCEPT.md
 ├── IMPLEMENTATION.md
