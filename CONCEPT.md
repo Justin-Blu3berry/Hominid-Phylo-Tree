@@ -1,3 +1,0 @@
-# Pseudocode
-
-Wow
