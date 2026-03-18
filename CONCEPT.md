@@ -27,19 +27,33 @@ Sequence data needs to be read from the fasta files in the `/data` directory
 This is necessary because each file is dedicated to a different gene, and we want to make sure that all the species that we're analyzing have sequence data. 
 
 ```
+Helper function to make a list of what species are missing from a fasta file
+expect to receive:
+path to the fasta file to inspect, we're assuming that it exists
+list of species that should have sequences in this file
+
+initialize a dict mapping species names to booleans, with the default value of false, this will indicate if they're in the file
+  read the file line by line, if any of the species names can be found on the line, set its value in the dict to true
+  at the end of reading the file, if any of the genes still have a value of false, they're missing from the file
+  so return a tuple of all the species that had a value of false
+If there are no genes with a value of false, return an empty tuple
+```
+```
+Helper function to check for missing data
 Expect to receive:
 Path to the directory to be searched in, as a path
 list of gene symbols
 list of species
+we're trying to see if a given gene has any fasta data in the given directory and, if the gene already has a fasta file, if it's missing any of the species we're looking at in our analysis
 
 initialize an empty dict to track file statuses
 go to the path
-go thru every gene symbol and check if <gene_symbol>.fasta exists
-  Add entry to status dict for this gene symbol, with the value of "missing file" if it can't be found
+go thru every gene symbol and check if <directory_to_search>/<gene_symbol>.fasta exists
+  if it doesn't exist, Add entry to status dict for this gene symbol, with the value of "missing file"
   if it exists, open the file
-    initialize a dict mapping species names to booleans, with the default value of false, this will indicate if they're in the file
-    read the file line by line, if any of the species names can be found on the line, set its value in the dict to true
-at the end of reading the file, if any of the genes still have a value of false, they're missing from the file, so add an entry to the status dict for this file with "missing species: " listing all the missing species
+    then use a helper function to get a list of the species from our list that aren't in this file
+    if the helper function returned a tuple with any species listed, add an entry to the status dict for this file with "missing species: " listing all the species with a value of false
+if the status dict has any entries in it, print to stdout all the entries from the status dict
 ```
 
 
@@ -53,7 +67,17 @@ list of species: list of strings, these are species we're looking to analyze, ig
 
 ## Sequence Comparison and Tree-Building
 
-### 
+### Building a distance matrix
+```
+Expect to receive:
+list of species names
+dictionary mapping a species's name to its sequence
+
+initialize an empty N x N matrix, where N is number of species in the list
+
+Iterate through every species and its index in the list
+
+```
 
 
 ## Driver
