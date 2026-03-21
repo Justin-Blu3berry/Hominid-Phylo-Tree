@@ -1,7 +1,28 @@
+
+# Project Summary
+
+This project is meant to answer the research question of how different a family's phylogenetic tree will be when generated using different genes as the basis for distance calculations. This will be answered using the Neighbor-Joining algorithm to build phylogenetic trees for the family hominidae, using fasta sequences for individual orthologous genes retrieved from NCBI's datasets command line integration. 
+
+
+# Inputs, Outputs, and Assumptions
+
+## Expected Inputs
+- FASTA sequence data for each orthologous gene, where each gene has its own FASTA file and each sequence in a given file corresponds to a different species' ortholog of the same gene
+
+## Expected Outputs
+- A series of plaintext files containing distance matrices, where each distance matrix is based on a one of the genes in the input data, and one of the distance matrices is based on the average of all the other distance matrices' values for each position
+- A tab-separated file containing the sample statistics for each species-species comparison, including the mean, standard deviation, and standard error of the mean for the distance between each pair of species
+- A series of image files depicting visualizations of the phylogenetic trees constructed based on each gene, including the tree generated from the "average" distance matrix
+- A plaintext file listing the Newick string representation of each tree, including the tree generated from the "average" distance matrix
+- A plaintext report comparing the groupings that all of the trees made
+
+## Key Assumptions
+- Distances between two species' sequences are additive (or nearly additive)
+- An ortholog is under equal selective pressure in one species to the orthologs in other species (i.e. the molecular clock for a given gene runs at the same speed in all species being looked at)
+- The limb length for an internal node cannot be resolved without at least one leaf on the distance matrix that doesn't descend from it
+- The limb length length formula of $\Large\frac{d_{A,B} + d_{A,C} - d_{B,C}}{2}$, can overestimate leaf A's limb length but never overestimate it (if B and C have a shared ancestor that A is not also descended from)
+
 # Pseudocode
-
-Wow
-
 
 ## Data download
 
@@ -122,7 +143,7 @@ For every position (i,j) on the distance matrix (they all have the same shape an
       Get the distance value for this coordinate and add it to a list
   After getting the values from all the genes, take the mean, standard deviation, and standard error of the distances in this list
   Write the mean to this position (i,j) and to its opposite (j,i) on the mean matrix
-  In the sample stats dictionary, record the mean, standard deviation, and standard error, suc that the dict is formatted like this: {<species1>-<species2> : { mean: <val>, std_dev: <val>, std_err: <val> } }
+  In the sample stats dictionary, record the mean, standard deviation, and standard error, such that the dict is formatted like this: {<species1>-<species2> : { mean: <val>, std_dev: <val>, std_err: <val> } }
 
 Convert the sample stats dictionary into a pandas dataframe and write it to a file in the output/ directory
   TODO: do something with this information PLEASE
@@ -132,3 +153,19 @@ Visualize the tree using Biopython's Phylo package, save the image in the output
 
 Now feed all of the newick trees into a helper function that compares the groups these trees formed, write output into a plaintext report in the outputs/ directory
 ```
+
+# Complexity and Bottlenecks
+Analyze the time and space complexity of your algorithm in terms of relevant parameters (e.g., sequence length, number of reads, number of states).
+Identify the most expensive parts of the algorithm and discuss:
+When performance might become a problem.
+Any ideas you have for mitigating performance issues (e.g., pruning, indexing, approximate methods)?
+
+
+# Validation and Testing Plan
+Describe how you plan to test your implementation:
+At least one small, hand-crafted example where you know or can reason about the correct answer.
+At least one synthetic or real dataset for stress testing.
+Explain:
+What results do you expect from these tests?
+What would constitute evidence that the algorithm is behaving incorrectly?
+Outline the kinds of automated tests you will implement (e.g., unit tests for subfunctions, end-to-end tests, property/invariant checks).
