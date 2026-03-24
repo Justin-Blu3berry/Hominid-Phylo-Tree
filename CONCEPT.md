@@ -20,7 +20,9 @@ This project is meant to answer the research question of how different a family'
 - Distances between two species' sequences are additive (or nearly additive)
 - An ortholog is under equal selective pressure in one species to the orthologs in other species (i.e. the molecular clock for a given gene runs at the same speed in all species being looked at)
 - The limb length for an internal node cannot be resolved without at least one leaf on the distance matrix that doesn't descend from it
-- The limb length length formula of $\Large\frac{d_{A,B} + d_{A,C} - d_{B,C}}{2}$, can overestimate leaf A's limb length but never overestimate it (if B and C have a shared ancestor that A is not also descended from)
+- ~~The limb length length formula of $\Large\frac{d_{A,B} + d_{A,C} - d_{B,C}}{2}$, can overestimate leaf A's limb length but never overestimate it (if B and C have a shared ancestor that A is not also descended from)~~
+- Comomonalities between two sequences are always due to the sequences having inherited those commonalities from a common ancestor, rather than independently mutating in the same exact manner.
+- The minimum number of mutations occurred between an ancestor and its descendents (i.e. a nucleotide that is the same between two species is assumed to have not mutated to a different nucleotide and then mutated back to the original in the time between their shared ancestor and now). 
 
 # Pseudocode
 
