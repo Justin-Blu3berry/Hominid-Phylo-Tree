@@ -20,7 +20,6 @@ This project is meant to answer the research question of how different a family'
 - Distances between two species' sequences are additive (or nearly additive)
 - An ortholog is under equal selective pressure in one species to the orthologs in other species (i.e. the molecular clock for a given gene runs at the same speed in all species being looked at)
 - The limb length for an internal node cannot be resolved without at least one leaf on the distance matrix that doesn't descend from it
-- ~~The limb length length formula of $\Large\frac{d_{A,B} + d_{A,C} - d_{B,C}}{2}$, can overestimate leaf A's limb length but never overestimate it (if B and C have a shared ancestor that A is not also descended from)~~
 - Comomonalities between two sequences are always due to the sequences having inherited those commonalities from a common ancestor, rather than independently mutating in the same exact manner.
 - The minimum number of mutations occurred between an ancestor and its descendents (i.e. a nucleotide that is the same between two species is assumed to have not mutated to a different nucleotide and then mutated back to the original in the time between their shared ancestor and now). 
 
@@ -121,6 +120,182 @@ Iterate through every species and its index (i) in the list
 At the end, just return the matrix
 ```
 
+### Node Object
+```
+Needs to have attributes:
+- Name
+- Limb length
+- The name of its parent
+
+Init function
+Takes name and limb length as mandatory inputs, with parent name as an optional input
+Assigns name and limb length to corresponding attributes
+Assigns parent name if provided, otherwise uses default of "default parent"
+
+__repr__ function
+we can make the string representation of this node be condusive to the tree printing its Newick string representation
+Spit out a string that concatenates the following: name + colon symbol + limb length
+```
+
+### Tree Object
+```
+Needs the following attributes:
+- Nodes: Dict mapping the name of each node on the tree to the node object they represent
+- Top_layer: List of the nodes that are in the top layer (they don't have parents that are also nodes)
+- Edges: Some way of mapping parent to list of children
+
+Methods:
+
+initialization:
+  Mandatory inputs: Nothing
+  Optional inputs: node_list: List of node objects to put on the tree
+                   top_layer: List of node objects that are in the top layer
+                   node_mapping: Dict mapping nodes to a list of nodes that descend from them
+  
+  All of these need to check that they received the right types as input by the way and use the default values if they don't
+  
+  Assign the nodes attribute to the the provided node_list parameter, if none is provided just use an empty list
+  Assign the top_layer attribute to the provided top_layer param if nothing is provided just use an empty list as well
+    If it's empty, it runs the helper func to identify parentless nodes
+  
+  Assign the edges attribute to a defaultdict with a default value of empty list
+  Attempt to unpack the values from the node_mapping dict into the defaultdict
+
+
+Add leaf:
+  Takes as input the node object to be added
+  Assumes that the node is being added without any connections to anything else
+
+  Add the given node to the self.nodes list and to self.top_layer list
+
+Identify parentless nodes (aka the nodes that should be in the top layer):
+  Doesn't take any params, just uses self.edges list as iterable
+
+  Make a shallow copy of the self.nodes list
+
+  iterate through the values of the edges dict (each value is a list of nodes that are the children of something else)
+  remove any values that appear in any of these lists
+
+  return the list of whatever remains after removing everything that was found to be the child of something else
+
+
+Generate a name for a new internal node based on its children:
+  Takes as input: List of child nodes
+
+  Generate a string that concatenates "(", the comma-separated string representations of all the children (using the str.join func), and ")"
+    NOTE: the string representation of a child will always be "<child.name>: <child.limb_length>"
+    NOTE: since the name for an internal node is just the Newick string representaiton of the subtree that descends from that internal node, this function
+          doesn't have to work any differently if a given child is internal or terminal
+
+  
+Add a parent for a set of children- This is our "add_edge": 
+  Takes as input: the list of the nodes that will be the children to this new internal node
+                  distance from this internal node to an outgroup (this gets calculated in the neighbor_joining func since that scope has access to the distance matrix)
+
+  Generate a name for this new internal node using the helper function
+  Create a node object for this new internal node, passing the newly-minted name as its name and its distance to an outgroup as its limb length
+    NOTE: the neighbor-joining func can update this as well later when this node is grouped with something else, and if this internal node is one of nodes in the 2x2 matrix at the end,
+          then its distance to the other node on the 2x2 matrix will be its limb length anyway (so it doesn't matter that it won't be updated)
+  Create an entry for this new internal node in the edges dict and map it to its list of child nodes
+  Update each child's entry for the name of its parent
+
+  Attempt to remove all the children from the self.top_layer list
+  Add this new internal node to the self.nodes list
+
+  return the name for this internal node (so that the neighbor joining func can access it to update the labels for the distance matrix)
+  
+
+__repr__ function (this is how we generate the newick string of the entire tree):
+  Takes no params, just uses the self.top_layer
+
+  Just calls the function that generates a name for a new internal node, except it passes all of the nodes in the top layer as the children
+```
+
+### Tree-Building via Neighbor-Joining
+
+#### Make a Q-matrix
+```
+Helper function to calculate the Q-matrix
+  Takes the distance matrix as input
+
+  Initialize an empty matrix with the same shape as the distance matrix
+  Iterates through half the positions on the distance matrix that hasn't been updated yet
+  (using something like for i in range(0, nrow) with for j in range(i, ncol) to avoid hitting BOTH i,j and j,i)
+    Use +infinity as the value for diagonals (where i=j)
+    For non-diagonal posiitons (i != j)
+      Calculate Q for i,j using the formula: (n-2)*d(i,j) - sum(row_i) - sum(row_j)
+      Fill in positions i,j and j,i with this Q value
+
+  After it's done filling out the matrix, return it
+```
+
+#### Calculate Limb Lengths
+```
+Helper function to calculate limb lengths for two nodes on the distance matrix
+  Takes as input:
+    The distance matrix
+    The row numbers for the nodes in question (i and j)
+
+  get the sum across the row for both of the nodes at issue (call these sumrow_i, sumrow_j)
+  for i: limb_length = ( distance(i, j) + ( (sumrow_i - sumrow_j) / (n-2) ) ) /2
+    could also use this for j, but it's faster to just do the shortcut below
+  for j: limb_length = distance(i,j) - limb_length_i
+
+  return the limb lengths for i and j
+```
+
+#### Calculate Distances to an Internal Node
+```
+Helper function to calculate the distance from the parent to two given nodes to all others
+  Takes as input:
+    The distance matrix
+    The row numbers for the two nodes in question, i and j
+
+  Initialize an empty numpy array of floats for the distances
+  Iterate over all of the row numbers that aren't the two given (0 to numrows - 1, excluding i and j)
+    apply the formula: dist_to_curr = ( distance(i, current) + distance(j, current) - distance(i, j) ) / 2
+    add the distance to the current outgroup to the numpy array
+
+  return the numpy array of distances
+    NOTE: the indices in this array will line up with the distance matrix and the label list AFTER i and j are removed from the matrix
+```
+
+#### Neighbor-Joining
+```
+Function to handle graph creation
+  Takes distance matrix and list of labels as input
+
+  Initialize an empty tree
+
+  Iterate until the matrix is 2x2
+    Make a Q-matrix using what the distance matrix currrently looks like
+    Find the position on the Q-matrix with the lowest Q (if multiple are tied and their coordinates aren't just flipped versions of each other, i.e. more than 2 are tied, just pick one)
+      this gives us coordinates i,j
+    Calculate the limb lengths for i and j
+    Calculate the distances to the remaining nodes for the parent to i and j
+    
+    Create node objects for i and j using their labels from the label list + their newly-calculated limb lengths
+    Add the nodes for i and j to the graph object
+    Create a parent node on the graph for nodes i and j, assign the name that this func will return to a variable
+    Remove i and j from the distance matrix (+ labels list)
+      To remove from the matrix, use numpy.delete and pass the distance matrix, a list containing i and j, and do this for axes 0 and 1
+    Add the name for the parent to i and j to the labels list
+    Add a row + column at the end of the matrix for the parent to i and j
+      Reshape the numpy array of distances to 1 row + length(array) columns and append to the matrix along axis 0 (or use vstack)
+      Append a 0 to the end of the numpy array to represent this node's distance to itself
+      Reshape the numpy array to length(array) rows + 1 column and append to the matrix along axis 1 (or use hstack)
+
+  Once we've broken out of the loop, we know that there are only two nodes left on the matrix
+    ASSUMPTION: at least one of the nodes left on the matrix is an internal node (this will have a node object associated with it, and its limb length will have
+                already been set to its distance to the only other node on the matrix), but one of the nodes on the matrix may still be a leaf. 
+                This remaining leaf will NOT yet have a node object associated with it on the graph
+    if any of the remaining species on the distance matrix doesn't yet have a node object for it, create a node object for it, with its limb length
+    equal to its distance to the only other remaining species on the matrix
+      This is checked by just seeing if it's in the list of names in graph.nodes
+    Then add the node for this leaf to the graph
+
+    Now just return the newick string representation of the tree
+```
 
 ## Driver
 
@@ -176,28 +351,15 @@ Now feed all of the newick trees into a helper function that compares the groups
 ```
 
 # Complexity and Bottlenecks
-Analyze the time and space complexity of your algorithm in terms of relevant parameters (e.g., sequence length, number of reads, number of states).
-Identify the most expensive parts of the algorithm and discuss:
-When performance might become a problem.
-Any ideas you have for mitigating performance issues (e.g., pruning, indexing, approximate methods)?
 
-I'm avoiding saving too many matrices to memory by overwriting the same distance matrix for every gene I use and just writing each one to its own file before I overwrite it. Writing the newick string representations of trees to files after I'm done with them. Only working with one gene/file at a time and writing its outputs to files before moving on to the next in this manner should ideally help prevent memory from being occupied by information associated with trees that are already done being made. 
+I'm avoiding saving too many matrices to memory by overwriting the same distance matrix for every gene I use and just writing each one to its own file before I overwrite it. Writing the newick string representations of trees to files after I'm done with them. Only working with one gene/file at a time and writing its outputs to files before moving on to the next in this manner should ideally help prevent memory from being occupied by information associated with trees that are already done being made. I'm primarily concerned about the runtime of the algorithm, as Neighbor-Joining has a time complexity of $O(n^3)$, which 
 
-Concerns about:
-- reliance on summation to resolve limb lengths
-- the matrices stored in memory being too large (particularly for alignments/distance calculations)
+I have concerns about:
+- the matrices stored in memory being too large (particularly for alignment scoring to calculate distance between two large sequences), which may be a justification for using a different distance metric
 - the time complexity for distance calculations potentially scaling poorly for the long sequences from NCBI
-- Neighbor-Joining being too slow to generate the bulk amount of trees I'm trying to make (upgma may shine here but makes worse trees)
+- The runtime being poor because Neighbor-Joining generates each tree too slowly and I'm generating a bulk amount of trees (upgma may shine here but makes worse trees)
 
 # Validation and Testing Plan
-Describe how you plan to test your implementation:
-At least one small, hand-crafted example where you know or can reason about the correct answer.
-At least one synthetic or real dataset for stress testing.
-Explain:
-What results do you expect from these tests?
-What would constitute evidence that the algorithm is behaving incorrectly?
-Outline the kinds of automated tests you will implement (e.g., unit tests for subfunctions, end-to-end tests, property/invariant checks).
-
 I plan to test the helper functions (especially the ones for downloading data and parsing files) using unit tests via the pytest module. This allows me to use fixtures to test the helper functions against expected outputs. 
 
 I plan to test my implementation as a whole by creating short sequences by hand for a handful of genes from an "ancestor" species and then mutating copies of the ancestral sequences one generation at a time to create the "modern" species' sequences. The key during this simulated evolution would be that the relationships between the sequences are tracked as they're generated, so the phylogenetic tree for these simulated genes is known before the tree-building algorithm even looks at them. This gives the toy data expected outputs to compare my results to as I test my code. The way I choose to mutate the sequences as I work with them can be manipulated to force certain edge cases, creating different genes to test different edge cases during tree building. For example, I could generate sequences such that two leaves (A & C) both have short limb lengths, have parents that are, themselves, not that distant from one another, and where one of the two leaves (A) has a sibling (B) with a very long limb length. In this case, the distance between the two cousins is small in magnitude, but the long limb length of the sibling should not lead to it being classified as the outgroup due to the use of the Q-matrix during Neighbor Joining. I would expect, in this example, that the sibling relationship between A and B is correctly identified and C is correctly identified as the outgroup, with B having an extremely long limb length and A C, the parent to A & B, and the parent to C all having extremely short limb lengths. 
