@@ -352,12 +352,12 @@ Now feed all of the newick trees into a helper function that compares the groups
 
 # Complexity and Bottlenecks
 
-I'm avoiding saving too many matrices to memory by overwriting the same distance matrix for every gene I use and just writing each one to its own file before I overwrite it. Writing the newick string representations of trees to files after I'm done with them. Only working with one gene/file at a time and writing its outputs to files before moving on to the next in this manner should ideally help prevent memory from being occupied by information associated with trees that are already done being made. I'm primarily concerned about the runtime of the algorithm, as Neighbor-Joining has a time complexity of $O(n^3)$, which 
+I'm avoiding saving too many matrices to memory by overwriting the same distance matrix for every gene I use and just writing each one to its own file before I overwrite it. I will also avoid storing too many trees in memory by writing the newick string representations of trees to files after I'm done with them. Only working with one gene/file at a time and writing its outputs to files before moving on to the next in this manner should ideally help prevent memory from being occupied by information associated with trees that are already done being made, though this threatens to slow down the calculations that get performed after all the trees are generated. 
 
 I have concerns about:
 - the matrices stored in memory being too large (particularly for alignment scoring to calculate distance between two large sequences), which may be a justification for using a different distance metric
 - the time complexity for distance calculations potentially scaling poorly for the long sequences from NCBI
-- The runtime being poor because Neighbor-Joining generates each tree too slowly and I'm generating a bulk amount of trees (upgma may shine here but makes worse trees)
+- The runtime being poor because Neighbor-Joining generates each tree slowly and I'm generating a bulk amount of trees (upgma may shine here but makes worse trees)
 
 # Validation and Testing Plan
 I plan to test the helper functions (especially the ones for downloading data and parsing files) using unit tests via the pytest module. This allows me to use fixtures to test the helper functions against expected outputs. 
