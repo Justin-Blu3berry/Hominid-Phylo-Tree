@@ -61,3 +61,20 @@ if __name__ == "__main__":
     print(config_path)
     print(data_path)
     print(output_path)
+
+    # TODO: read the config file (leave addressing assumption that the file exists and is filled out directly for later)
+    # TODO: make ordered list of species and ordered list of genes from config
+    # TODO LATER: validate that all the genes' files exist and have all the species we care about
+    # TODO: iterate over gene names in the config file
+    # TODO: open current gene's fasta file
+    # TODO: make dict of species_name: sequence for current gene
+    # TODO: make distance matrix
+    # TODO: make tree from distance matrix (maybe just save the str(tree) bc we don't need the full object)
+    # TODO: write distance matrix & tree string to file
+    # TOOD: use biopython Phylo package to visualize the tree
+    # TODO: save image to outputs
+    # TODO: repeat for all genes
+    # TODO later: get summary stats for every combo of species on dist matrix
+    # TODO later: make dist matrix + tree + image of mean dist matrix
+    # TODO later: compare groupings of species
+    # TODO later: generate report of comparisons
