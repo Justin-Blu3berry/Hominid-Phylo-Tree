@@ -38,13 +38,34 @@ class Node:
     
 
 class Tree:
-    def __init__(self, node_list: list[Node] = [],
+    """
+    Object representing a phylogenetic tree as a graph structure
+
+    Attributes:
+        nodes: dict[str, Node]
+            Dict mapping node names to their Node objects
+        top_layer: list[Node]
+            List of node objects in the tree that don't have parents
+        edges: dict[Node, Node]
+            Dict mapping Node objects to the Nodes they are parental to
+    Methods:
+        add_node(self, new_node: Node, children: list[Node] = []) -> None
+            Function to add a new node to the graph without connections to anything else
+        get_parentless_nodes(self) -> list[Node]
+            Function to identify nodes on the graph that don't have any parents 
+            (and therefore belong on self.top_layer)
+        make_parent(self, children: list[Node], dist_to_outgroup: float, verbose: bool = True) -> str
+            Function to make a new internal node that is parental to all of the Nodes in children
+        __repr__(self) -> str
+            Function to create the Newick String representation of the entire graph
+    """
+    def __init__(self, node_dict: dict[str, Node] = {},
                  top_layer: list[Node] = [],
                  node_mapping: dict[Node, list[Node]] = {}):
         
         # set attributes
-        self.nodes = node_list
-        self.top_layer = top_layer
+        self.nodes = node_dict.copy()
+        self.top_layer = top_layer.copy()
         self.edges = defaultdict(list)
 
         # check if the top layer is empty but self.nodes isn't
@@ -68,7 +89,7 @@ class Tree:
             list of Node objects that this new node is the parent to
         """
         # add the new node to the nodes list and to the top layer
-        self.nodes.append(new_node)
+        self.nodes[new_node.name] = new_node
         self.top_layer.append(new_node)
         
         # add this node to the edges dictionary if any children are specified
@@ -76,7 +97,7 @@ class Tree:
             self.edges[new_node] = children
 
     
-    def get_parentless_nodes(self):
+    def get_parentless_nodes(self) -> list[Node]:
         """
         Function to identify nodes on the graph that don't have any parents (and therefore belong on self.top_layer)
         """
@@ -97,7 +118,7 @@ class Tree:
         return parentless_nodes
     
 
-    def make_parent(self, children: list[Node], dist_to_outgroup: float, verbose: bool = False) -> str:
+    def make_parent(self, children: list[Node], dist_to_outgroup: float, verbose: bool = True) -> str:
         """
         Function to make a new internal node that is parental to all of the Nodes in children
 
@@ -131,7 +152,7 @@ class Tree:
                 if verbose:
                     print(f"Attempted to remove {child_node} from tree's top layer, but it isn't already in the top layer.\n"
                         f"Top layer at time of attempted removal: {self.top_layer}.\n"
-                        f"Nodes list at time of attempted removal: {self.nodes}.\n"
+                        f"Nodes dict at time of attempted removal: {self.nodes}.\n"
                         f"Edges at time of attempted removal: {self.edges}.")
 
             # also update the children's parental names too while we're here
@@ -182,7 +203,10 @@ def _generate_parent_name(children: list[Node]) -> str:
     # concatenate on the string representations of the children
     for child_node in children:
         # this concatenates "{child_name}:{limb_length}" thanks to how we defined __repr__ for Node objects
-        parent_name += str(child_node)
+        if child_node == children[-1]:
+            parent_name += str(child_node)
+        else:
+            parent_name += str(child_node) + ","
 
     # cap off at the end with a closing parenthesis
     return parent_name + ")"

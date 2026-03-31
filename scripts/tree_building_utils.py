@@ -194,3 +194,239 @@ def make_q_matrix(dist_matrix: np.ndarray) -> np.ndarray:
             q_matrix[j,i] = q_ij
     
     return q_matrix
+
+
+def calc_limb_lengths(dist_matrix: np.ndarray, i: int, j: int) -> tuple[int, int]:
+    """
+    Function to calculate the limb lengths for two nodes on the distance matrix
+    given the row/column number for each of them
+
+    Parameters
+    ----------
+    dist_matrix : np.ndarray
+        The matrix of distances between each pair of species, has shape (N, N) where
+        N is the number of species
+    i: int
+        the row/column number for one of the species of interest
+    j: int
+        the row/column number for the other species of interest
+    
+    Returns
+    -------
+    Tuple of ints
+        the limb length for the species at row i, followed by the limb lenght for 
+        the species at row j
+    """
+
+    # get the sum across rows for species i and j
+    sumrow_i = np.sum(dist_matrix[i,:])
+    sumrow_j = np.sum(dist_matrix[j,:])
+
+    num_species = dist_matrix.shape[0]
+
+    # calculate the limb lengths for i and j
+    length_i = ( dist_matrix[i,j] + ( (sumrow_i - sumrow_j) / (num_species - 2) ) ) / 2
+    length_j = dist_matrix[i,j] - length_i
+
+    return length_i, length_j
+
+
+def calc_internal_dist(dist_matrix: np.ndarray, i: int, j: int) -> np.ndarray:
+    """
+    Function to calculate the distance from a parent of two given nodes to
+    all others on the distance matrix
+
+    Parameters
+    ----------
+    dist_matrix : np.ndarray
+        the matrix displaying the distances between all combinations of two species
+        all distances are floats between 0 and 1
+    i : int
+        the row number for one of the child nodes
+    j : int
+        the column number for the other child node
+
+    Returns
+    -------
+    np.ndarray
+        an array of the distances between this internal node to all other nodes on
+        the distance matrix that don't descend from this one
+        NOTE: the indices in this array will line up with the distance matrix and 
+        the label list AFTER i and j are removed from the matrix)
+    """
+
+    # initialize the output
+    num_species = dist_matrix.shape[0]
+    distances = np.zeros(shape=num_species - 2, dtype=float)
+
+    # save the distance from i to j for later
+    dist_ij = dist_matrix[i,j]
+
+    # iterate over the rows, excluding the rows for the two given species (i and j)
+    rows_to_hit = [idx for idx in range(num_species) if idx not in (i,j)]
+    for new_idx, curr_row in enumerate(rows_to_hit):
+
+        # calc distance from internal node to this species in the dist matrix
+        dist_to_curr = ( dist_matrix[i, curr_row] + dist_matrix[j, curr_row] - dist_ij ) / 2.0
+        
+        # store the distance for later
+        distances[new_idx] = dist_to_curr
+    
+    return distances
+
+
+def _is_symmetric(dist_matrix: np.ndarray) -> bool:
+    """
+    Function to check if the distances on the distance matrix are symmetric
+    i.e. that matrix[i,j] is equal to matrix[j,i]
+
+    Parameters
+    ----------
+    dist_matrix : np.ndarray
+        2d numpy matrix of distances between species
+
+    Returns
+    -------
+    bool
+        boolean indicating True if the matrix is symmetric and False if not
+    """
+    # iterate through the positions on the matrix
+    for i in range(dist_matrix.shape[0]):
+        for j in range(dist_matrix.shape[1]):
+
+            # check if the value at i,j is equal to the value at j,i
+            if dist_matrix[i,j] != dist_matrix[j,i]:
+                # if not, print out an error message and quit
+                print(f"Distance matrix is not symmetric! \n"
+                      f"Expected matrix[{i},{j}] to be equal to matrix[{j},{i}].\n"
+                      f"matrix[{i},{j}] = {dist_matrix[i,j]}, while matrix[{j},{i}] = {dist_matrix[j,i]}.")
+                return False
+    # if we made it this far, we never encountered any asymmetries
+    return True
+
+
+def neighbor_joining(dist_matrix: np.ndarray, seq_labels: list[str], verbose: bool = False) -> Tree | None:
+    """
+    Function to create the tree structure for a group of sequences based
+    on their distance matrix and the list of labels for the rows/columns
+    of the distance matrix
+
+    Parameters
+    ----------
+    dist_matrix : np.ndarray
+        numpy matrix of distances between every pair of species
+        has shape N by N, where N is the number of species in seq_labels
+        Distances in this matrix should be symmetric dist_matrix[i,j] should equal dist_matrx[j,i]
+    seq_labels : list[str]
+        list of names for the species on each row/column of the sequence matrix
+
+    Returns
+    -------
+    Tree
+        the phylogenetc tree structure for the sequences in the distance matrix
+    """
+
+    # validate that the matrix has the right dimensions
+    num_species = len(seq_labels)
+    if dist_matrix.shape != (num_species, num_species):
+        # this also catches if number of rows is not equal to number of columns
+        # print for debugging
+        print(f"Distance matrix does not match species labels! Expected shape: "
+              f"{num_species} by {num_species}, and got: {dist_matrix.shape}.")
+        # quit the func if this core assumption is volated
+        return None
+    
+    # check if the distances are symmetric
+    if not _is_symmetric(dist_matrix):
+        return None
+    
+    # now that we're sure the matrix is valid, we can start
+    phylo_tree = Tree()
+    working_matrix = dist_matrix.copy()
+    working_labels = seq_labels.copy()
+    if verbose:
+        print(f"Starting, empty tree:\n{phylo_tree}")
+        print(f"Starting, working_matrix: \n{working_matrix}")
+        print(f"Starting, working_labels: {working_labels}")
+
+    # iterate until the distance matrix has a shape of 2x2
+    while working_matrix.shape != (2,2):
+
+        # make a q-matrix
+        curr_q_matrix = make_q_matrix(working_matrix)
+        if verbose:
+            print(f"Q_matrix:\n{curr_q_matrix}")
+
+        # grab the coordinates for the FIRST minimum to appear on the q-matrix, reading across rows
+        i, j = np.unravel_index(np.argmin(curr_q_matrix), shape=curr_q_matrix.shape)
+        if verbose:
+            print(f"Identified minimum on q-matrix at [{i}, {j}]. These are {working_labels[i]}, {working_labels[j]}")
+
+        # get the limb lengths for the species on rows i and j
+        # NOTE: i and j are converted here from np.int64 to int, which can change their values
+        # in cases of extreme overflow
+        limblength_i, limblength_j = calc_limb_lengths(working_matrix, int(i), int(j))
+        if verbose:
+            print(f"Limb lengths are i:{limblength_i}, j:{limblength_j}")
+
+        # get the distances from the parent to i and j to all other nodes on the dist matrix
+        parental_distances = calc_internal_dist(working_matrix, int(i), int(j))
+
+        # create node objects for i and j
+        node_i = Node(working_labels[i], limblength_i)
+        phylo_tree.add_node(node_i)
+        node_j = Node(working_labels[j], limblength_j)
+        phylo_tree.add_node(node_j)
+
+        if verbose:
+            print(f"Current tree before adding parent: {phylo_tree}")
+
+        # create a parent node on the graph for nodes i and j
+        parent_name = phylo_tree.make_parent([node_i, node_j], min(parental_distances))
+        if verbose:
+            print(f"Current tree after adding parent: {phylo_tree}")
+
+        # remove species i and j from the distance matrix AND the labels list
+        # iterate through the row numbers for the two species from greatest to least so
+        # the indices for rows to be removed don't need to be recalculated
+        for idx in sorted([i,j], reverse=True):
+            # delete column and then delete row
+            working_matrix = np.delete(working_matrix, idx, axis=1)
+            working_matrix = np.delete(working_matrix, idx, axis=0)
+            del working_labels[idx]
+        if verbose:
+            print(f"After removing rows i and j, working matrix:\n{working_matrix}\n"
+                f"With labels: {working_labels}")
+        
+        # add the name for the parent to the labels list
+        working_labels.append(parent_name)
+
+        # add a row at the end of the matrix for this row
+        new_row = np.reshape(parental_distances, shape=(1,len(parental_distances)))
+        if verbose:
+            print(f"New row: {new_row}")
+            print(f"Working matrix: \n{working_matrix}")
+        working_matrix = np.vstack((working_matrix, new_row))
+        
+        # add a 0 in the last position to represent this node's distance to itself
+        parental_distances = np.append(parental_distances, 0)
+
+        # add a new column for this node as well
+        new_col = np.reshape(parental_distances, shape=(len(parental_distances), 1))
+        working_matrix = np.hstack((working_matrix, new_col))
+    
+    if verbose:
+        print(f"Working matrix at end:\n{working_matrix}, with labels:{working_labels}")
+    # now there's only two nodes left on the matrix, and >=1 is internal
+    for idx, species_name in enumerate(working_labels):
+        if species_name not in phylo_tree.nodes:
+            # this works because the matrix is guaranteed to be 2x2 now, so the only options are idx=0 and idx=1
+            other_idx = 1 - idx
+            # create a node object for this species, using its distance to the only other species 
+            # as its limb length
+            new_node = Node(species_name, limb_length=working_matrix[idx,other_idx])
+            phylo_tree.add_node(new_node)
+
+    # now every node is on the graph, and we can't make any more parents because there is no outgroup for
+    # those parents to calculate their limb length
+    return phylo_tree
