@@ -103,7 +103,7 @@ class Tree:
         """
 
         # make a shallow copy of the self.nodes list
-        parentless_nodes = self.nodes.copy()
+        parentless_nodes = [node for node in self.nodes.values()]
 
         # iterate through the lists of edges in self.edges
         for curr_edges in self.edges.values():
