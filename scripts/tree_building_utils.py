@@ -430,3 +430,49 @@ def neighbor_joining(dist_matrix: np.ndarray, seq_labels: list[str], verbose: bo
     # now every node is on the graph, and we can't make any more parents because there is no outgroup for
     # those parents to calculate their limb length
     return phylo_tree
+
+
+if __name__ == "__main__":
+    # little demonstration with quick toy data
+    # intended tree has A and D as siblings under one common ancestor with B and C as siblings under a different common ancestor
+    print("Expected output: ((species_B,species_C),(species_A,species_D));")
+    species = ["species_A", "species_B", "species_C", "species_D"]
+    
+    # gene whose sequences show A and D's common ancestor maintaining ancestral state, B and C's ancestor having a mutation, and
+    # A+D and B+C each developing another mutation independent of each other (assume ancestral state is ATAAAAA)
+    gene_one = {"species_A": "ATTGAAA",
+                "species_B": "AAAACGA",
+                "species_C": "ATAACGA",
+                "species_D": "ATAGAAA"}
+    # gene whose purpose is to see what happens if a mutation in B+C's ancestor is inverted in either of B or C
+    # assume ancestral state is GAGGGGG
+    gene_two = {"species_A": "GAGGTGG",
+                "species_B": "GACGGGG",
+                "species_C": "GCAGGGG",
+                "species_D": "GAAATGG"}
+    # gene designed to see if a deletion affects B and C being resolved as siblings
+    # assume ancestral state is CCCCCCC
+    gene_three = {"species_A": "CCCCAGC",
+                  "species_B": "CCGGCCC",
+                  "species_C": "CCGCC",
+                  "species_D": "CTTCACC"}
+    
+    genes = [gene_one, gene_two, gene_three]
+
+    trees = []
+
+    for i, curr_seq_dict in enumerate(genes):
+        print(f"Gene_{i+1}:")
+        for k, v in curr_seq_dict.items():
+            print(f"{k}:{v}")
+
+        # make a distance matrix for this gene
+        curr_dist_matrix = make_dist_matrix(species, curr_seq_dict)
+        print(f"{species}\n{curr_dist_matrix}\nGene_{i+1} Q-matrix:\n{make_q_matrix(curr_dist_matrix)}")
+
+        # make the tree
+        curr_tree = neighbor_joining(curr_dist_matrix, species, False)
+        trees.append(curr_tree)
+        
+    for i in range(len(genes)):
+        print(f"Tree {i+1}:\n{trees[i]}")

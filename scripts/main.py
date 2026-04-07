@@ -71,7 +71,7 @@ if __name__ == "__main__":
     # TODO: make distance matrix
     # TODO: make tree from distance matrix (maybe just save the str(tree) bc we don't need the full object)
     # TODO: write distance matrix & tree string to file
-    # TOOD: use biopython Phylo package to visualize the tree
+    # TODO: use biopython Phylo package to visualize the tree
     # TODO: save image to outputs
     # TODO: repeat for all genes
     # TODO later: get summary stats for every combo of species on dist matrix

@@ -34,7 +34,7 @@ class Node:
         str
             Newick-adjacent string representing this node
         """
-        return f"{self.name}:{self.limb_length}"
+        return f"{self.name}:{round(self.limb_length,4)}"
     
 
 class Tree:
