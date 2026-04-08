@@ -59,13 +59,13 @@ class Tree:
         __repr__(self) -> str
             Function to create the Newick String representation of the entire graph
     """
-    def __init__(self, node_dict: dict[str, Node] = {},
-                 top_layer: list[Node] = [],
-                 node_mapping: dict[Node, list[Node]] = {}):
+    def __init__(self, node_dict: dict[str, Node] | None = None,
+                 top_layer: list[Node] | None = None,
+                 node_mapping: dict[Node, list[Node]] | None = None):
         
         # set attributes
-        self.nodes = node_dict.copy()
-        self.top_layer = top_layer.copy()
+        self.nodes = node_dict if node_dict else {}
+        self.top_layer = top_layer if top_layer else []
         self.edges = defaultdict(list)
 
         # check if the top layer is empty but self.nodes isn't
@@ -73,8 +73,9 @@ class Tree:
             self.top_layer = self.get_parentless_nodes()
         
         # attempt unpack its pairings into the defaultdict (does nothing if node_mapping is empty)
-        for node, children in node_mapping.items():
-            self.edges[node] = children
+        if node_mapping:
+            for node, children in node_mapping.items():
+                self.edges[node] = children
         
     
     def add_node(self, new_node: Node, children: list[Node] = []) -> None:
