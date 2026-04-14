@@ -12,98 +12,6 @@ from collections import defaultdict
 from tree_objects import Node, Tree
 
 
-def _get_species_from_header(header: str, verbose: bool = False) -> str:
-    """
-    Function to parse a fasta sequeence header to pull out just the species name
-
-    Expects header format of:
-    >NC_<refseq ID>:<genomic location> <genus> <species> <subspecies> isolate <isolate ID> chromosome <number>, 
-    <assembly name>, <space-delimited description of sequencing type>
-    This is space-delimited, where the refseq-ID and location are the first element, followed by separate elements
-    for the genus, species, subspecies, the word "isolate", the isolate ID, and more after that
-
-    Parameters
-    ----------
-    header : str
-        fasta header to be parsed
-    verbose: bool, default is False
-        indicates if debug messages should be displayed
-
-    Returns
-    -------
-    str
-        species name, as it appears in the fasta header
-    """
-    # remove whitespace characters from the ends, snap to lowercase
-    header_list = header.strip().lower().split()
-
-    if verbose:
-        print(header_list)
-
-    # identify the position for the word "isolate" to accomodate entries that list the subspecies and entries that don't
-    if "isolate" in header_list:
-        # set the upper bound to the location of the word "isolate" (it gets cut off because slices are exclusive on the right)
-        upper = header_list.index("isolate")
-    else:
-        # if it doesn't appear, just set a default behavior
-        upper = 3
-
-    # expect the species name to be the slice of the header list from index 1 to the index where "isolate" occurs
-    # (for species like Gorilla gorilla gorilla, using a slice from just 1:3 won't work, since it cuts off the subspecies)
-    full_name = header_list[1:upper]
-
-    return "_".join(full_name)
-
-
-def read_fasta(infile: Path) -> dict[str, str]:
-    """
-    Function to read the fasta for a given gene and make a dict mapping species names to
-    their respective sequences for this gene
-
-    IMPORTANT: this function assumes that the fasta file only contains ONE sequence per species. 
-               If one species has multiple sequences in this file, all but the last are overwritten
-
-    This function assumes that the file path already exists and has been validated for 
-    containing the species of interest
-
-    Parameters
-    ----------
-    infile : Path
-        pathlib Path object pointing to the fasta file to be read
-
-    Returns
-    -------
-    dict[str, str]
-        dictionary mapping species names to their respective sequence for a given gene
-    """
-    # initialize sequences dict
-    seq_dict = {}
-    curr_species = ""
-    curr_seq = ""
-
-    # open the file
-    with infile.open(mode="r", encoding="utf-8") as fasta:
-        
-        # iterate over the lines
-        for line in fasta:
-            
-            # check if the line is a header
-            if ">" in line:
-                # attempt to pack up the current species and current sequence into the sequences dict
-                if curr_seq and curr_species:
-                    seq_dict[curr_species] = curr_seq
-                
-                # update the species using the current header
-                curr_species = _get_species_from_header(line)
-                # reset the current sequence
-                curr_seq = ""
-
-            else:
-                # this means we're not looking at a header, append the current line to the current sequence
-                curr_seq += line.strip()
-
-    return seq_dict
-
 
 def make_dist_matrix(species_names: list[str], seq_dict: dict[str, str]) -> np.ndarray:
     """
@@ -372,11 +280,18 @@ def neighbor_joining(dist_matrix: np.ndarray, seq_labels: list[str], verbose: bo
         # get the distances from the parent to i and j to all other nodes on the dist matrix
         parental_distances = calc_internal_dist(working_matrix, int(i), int(j))
 
-        # create node objects for i and j
-        node_i = Node(working_labels[i], limblength_i)
-        phylo_tree.add_node(node_i)
-        node_j = Node(working_labels[j], limblength_j)
-        phylo_tree.add_node(node_j)
+        # only create node objects for i and j if these species are not already on the graph structure
+        if working_labels[i] in phylo_tree.nodes:
+            node_i = phylo_tree.nodes[working_labels[i]]
+        else:
+            node_i = Node(working_labels[i], limblength_i)
+            phylo_tree.add_node(node_i)
+        
+        if working_labels[j] in phylo_tree.nodes:
+            node_j = phylo_tree.nodes[working_labels[j]]
+        else:
+            node_j = Node(working_labels[j], limblength_j)
+            phylo_tree.add_node(node_j)
 
         if verbose:
             print(f"Current tree before adding parent: {phylo_tree}")
@@ -430,6 +345,42 @@ def neighbor_joining(dist_matrix: np.ndarray, seq_labels: list[str], verbose: bo
     # now every node is on the graph, and we can't make any more parents because there is no outgroup for
     # those parents to calculate their limb length
     return phylo_tree
+
+
+def get_mean_dist_matrix(matrix_list: list[np.ndarray]) -> np.ndarray:
+    """
+    Function to make a distance matrix where each position contains the mean 
+    of that position's corresponding values in all the distance matrices provided
+    E.g. if there are 3 matrices, position (i,j) on the mean matrix will be mean of the values on
+    position (i,j) in the three matrices provided
+
+    Parameters
+    ----------
+    matrix_list : list[np.ndarray]
+        list of additive distance matrices between species
+        NOTE: must all have same shape and be two-dimensional
+
+    Returns
+    -------
+    np.ndarray
+        2d additive distance matrix with same shape as each of the distance matrices provided
+    """
+    # get the shapes of all the matrices
+    numrows, numcols = matrix_list[0].shape
+
+    # initialize the output
+    mean_matrix = np.zeros(shape=(numrows, numcols))
+
+    # iterate through the positions in all the distance matrices
+    for i in range(numrows):
+        for j in range(numcols):
+            # get the mean for this position on all matrices
+            corresponding_values = [dist_mat[i,j] for dist_mat in matrix_list]
+            curr_mean = np.mean(corresponding_values)
+            # write this to the mean matrix
+            mean_matrix[i,j] = curr_mean
+    
+    return mean_matrix
 
 
 if __name__ == "__main__":

@@ -68,14 +68,14 @@ class Tree:
         self.top_layer = top_layer if top_layer else []
         self.edges = defaultdict(list)
 
-        # check if the top layer is empty but self.nodes isn't
-        if self.top_layer is [] and self.nodes:
-            self.top_layer = self.get_parentless_nodes()
-        
         # attempt unpack its pairings into the defaultdict (does nothing if node_mapping is empty)
         if node_mapping:
             for node, children in node_mapping.items():
                 self.edges[node] = children
+
+        # check if the top layer is empty but self.nodes isn't
+        if self.top_layer is [] and self.nodes and node_mapping:
+            self.top_layer = self.get_parentless_nodes()
         
     
     def add_node(self, new_node: Node, children: list[Node] = []) -> None:
@@ -97,6 +97,20 @@ class Tree:
         if children:
             self.edges[new_node] = children
 
+    def change_node_name(self, node_to_change: Node, new_name: str) -> None:
+        """
+        Function to change the name of a node object on the graph
+        """
+        # update this node's entry in the names-->nodes dict
+        self.nodes[new_name] = self.nodes.pop(node_to_change.name)
+
+        # change the name on the node object
+        node_to_change.name = new_name
+
+        # update what the children of this node think its name is
+        for child in self.edges[node_to_change]:
+            child.parent_name = new_name
+        
     
     def get_parentless_nodes(self) -> list[Node]:
         """
@@ -119,6 +133,40 @@ class Tree:
         return parentless_nodes
     
 
+    def _generate_parent_name(self, children: list[Node]) -> str:
+        """
+        Function to generate a name for an internal node based on what its children are
+        This node's name is going to be the Newick string representation of the subtree that descends from this node
+
+        NOTE: because internal nodes are resolved from bottom to top AND because all internal nodes are getting named
+                like this, there is actually no need to recurse through the tree to make the newick string representation
+                for either the main tree or any subtree inside of it
+
+        Parameters
+        ----------
+        children : list[Node]
+            list of Nodes that this one is directly ancestral to
+
+        Returns
+        -------
+        str
+            the Newick String representation of the subtree that descends from this tree
+        """
+        # initialize the name for this parent
+        parent_name = "("
+
+        # concatenate on the string representations of the children
+        for child_node in children:
+            # this concatenates "{child_name}:{limb_length}" thanks to how we defined __repr__ for Node objects
+            if child_node == children[-1]:
+                parent_name += str(child_node)
+            else:
+                parent_name += str(child_node) + ","
+
+        # cap off at the end with a closing parenthesis
+        return parent_name + ")"
+    
+
     def make_parent(self, children: list[Node], dist_to_outgroup: float, verbose: bool = True) -> str:
         """
         Function to make a new internal node that is parental to all of the Nodes in children
@@ -138,7 +186,7 @@ class Tree:
         """
 
         # generate a name for this new internal node
-        parent_name = _generate_parent_name(children)
+        parent_name = self._generate_parent_name(children)
         
         # create a node object for this internal node
         new_node = Node(parent_name, dist_to_outgroup)
@@ -175,39 +223,9 @@ class Tree:
         """
         # get the name for a hypothetical parent to all the nodes in the top layer
         # cap it off with semicolon to indicate a completed tree
-        return _generate_parent_name(self.top_layer) + ";"
-
-
-
-def _generate_parent_name(children: list[Node]) -> str:
-    """
-    Function to generate a name for an internal node based on what its children are
-    This node's name is going to be the Newick string representation of the subtree that descends from this node
-
-    NOTE: because internal nodes are resolved from bottom to top AND because all internal nodes are getting named
-            like this, there is actually no need to recurse through the tree to make the newick string representation
-            for either the main tree or any subtree inside of it
-
-    Parameters
-    ----------
-    children : list[Node]
-        list of Nodes that this one is directly ancestral to
-
-    Returns
-    -------
-    str
-        the Newick String representation of the subtree that descends from this tree
-    """
-    # initialize the name for this parent
-    parent_name = "("
-
-    # concatenate on the string representations of the children
-    for child_node in children:
-        # this concatenates "{child_name}:{limb_length}" thanks to how we defined __repr__ for Node objects
-        if child_node == children[-1]:
-            parent_name += str(child_node)
+        # TODO: make this no longer use the shortcut and ACTUALLY make the string recursively
+        if self.top_layer:
+            return self._generate_parent_name(self.top_layer) + ";"
         else:
-            parent_name += str(child_node) + ","
-
-    # cap off at the end with a closing parenthesis
-    return parent_name + ")"
+            # if nothing is in the top layer, just print an empty tree
+            return "();"
