@@ -1,5 +1,6 @@
 {
     "API_key":"none",
-    "list_seq_ids":["toy_gene_1","toy_gene_2","toy_gene_3","toy_gene_4","toy_gene_5"],
-    "list_species":["species_a", "species_b", "species_c", "species_d", "species_e", "species_f", "species_g"]
+    "list_gene_names":["toy_gene_0","toy_gene_1","toy_gene_2","toy_gene_3","toy_gene_4"],
+    "list_species":["A", "B", "C", "D", "E", "F"],
+    "email":"none"
 }
