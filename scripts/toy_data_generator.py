@@ -1,11 +1,13 @@
-# I'm feeling too lazy to make the toy data by hand
+# Module that simulates sequence evolution to generate "realistic" toy sequences at varying levels of conservation
 
 # imports
 import argparse
 import numpy as np
 from textdistance import smith_waterman
 from pathlib import Path
+
 from tree_objects import Node, Tree
+from filewriting import write_fasta, plot_tree
 
 
 def get_cli_args() -> argparse.Namespace:
@@ -187,7 +189,7 @@ def mutated(sequence: str,
 
         elif curr_mutation == "translocate":
             # get the location the substring will be moved to
-            new_location = rng.integers(rng.integers(0, len(sequence)))
+            new_location = rng.integers(0, len(sequence))
             # grab the part that needs to be moved
             mobile_element = working_seq[mut_location: mut_location + mut_size]
             # remove the mobile element from the working seq
@@ -289,24 +291,6 @@ def evolve_sequences(tree: Tree,
     return str(tree), sequences
 
 
-def write_fasta(seq_dict: dict[str, str], fasta_path: Path) -> None:
-    """
-    Function to write orthologous sequences from various species to a fasta file
-    ASSUMES: all sequences in the dict are for the same gene, as seen across all the species in the dict
-
-    Parameters
-    ----------
-    seq_dict : dict[str, str]
-        dict mapping species names to their respective sequences for this shared gene
-    fasta_path : Path
-        path to the fasta file being written
-    """
-    # write the header and sequence for this species
-    text_to_write = (f"> {species}\n{sequence}\n" for species, sequence in seq_dict.items())
-    text_to_write = "".join(text_to_write)
-    fasta_path.write_text(text_to_write)
-
-
 if __name__ == "__main__":
     # get CLI options
     cli_args = get_cli_args()
@@ -326,15 +310,18 @@ if __name__ == "__main__":
         # make/reset the fake tree
         tree = make_fake_tree()
 
-        # evolve the sequences on the tree
-        newick_string, sequences = evolve_sequences(tree, sequence, rng, mutation_range=(1,2))
+        # evolve the sequences on the tree (make each gene progressively less conserved)
+        newick_string, sequences = evolve_sequences(tree, sequence, rng, mutation_range=(i, i+1))
 
         # write the sequences to a fasta file
         fasta_path = data_path / f"toy_gene_{i}.fna"
         write_fasta(sequences, fasta_path)
 
         newick_strings.append(newick_string)
-        # newick_strings.append(f"(A:{i},B:{i});")
+
+        # save the image for this expected tree
+        image_path = data_path / f"expected_gene_{i}.png"
+        plot_tree(tree, image_path, f"expected for toy_gene_{i}")
     
     # write the expected newick string outputs
     trees_path = data_path / "expected_outputs.txt"
@@ -342,4 +329,5 @@ if __name__ == "__main__":
     text_to_write = "".join(text_to_write)
     trees_path.write_text(text_to_write)
 
-    print(f"Finished writing toy data. Check {data_path} for outputs")
+    print(f"Finished writing toy data. Check {data_path} for outputs. "
+           "Gene 0 is expected to be the most conserved, and gene 4 is expected to be the least conserved")

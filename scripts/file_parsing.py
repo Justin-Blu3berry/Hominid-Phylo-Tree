@@ -82,6 +82,10 @@ def _get_species_from_header(header: str, verbose: bool = False) -> str:
     if verbose:
         print(header_list)
 
+    # remove the word 'predicted' if present so it doesn't mess with the species name
+    if "predicted:" in header_list:
+        header_list.remove("predicted:")
+
     # identify the position for the word "isolate" to accomodate entries that list the subspecies and entries that don't
     if "isolate" in header_list:
         # set the upper bound to the location of the word "isolate" (it gets cut off because slices are exclusive on the right)
