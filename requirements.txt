@@ -1,7 +1,6 @@
 ==Required packages==
 Argparse
-Bio.Entrez
-Bio.Phylo
+Bio
 collections.defaultdict
 json
 numpy
