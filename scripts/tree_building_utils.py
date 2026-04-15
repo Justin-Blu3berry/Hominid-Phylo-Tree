@@ -6,7 +6,6 @@ Justin Wildman, BINF6251 Final Project: Hominin Phylogenetic Forest
 import numpy as np
 import textdistance as td
 from pathlib import Path
-from collections import defaultdict
 
 # import from my modules
 from tree_objects import Node, Tree
