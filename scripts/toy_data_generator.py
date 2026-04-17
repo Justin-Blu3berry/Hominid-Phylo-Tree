@@ -300,7 +300,7 @@ if __name__ == "__main__":
     rng = np.random.default_rng(42)
 
     # generate ancestral sequences
-    ancestral_seqs = generate_ancestral_seqs(rng)
+    ancestral_seqs = generate_ancestral_seqs(rng, desired_len=30)
 
     # initialize
     newick_strings = []

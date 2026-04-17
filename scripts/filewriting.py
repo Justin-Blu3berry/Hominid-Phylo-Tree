@@ -50,7 +50,7 @@ def write_outputs(out_path: Path, tree: Tree, seq_labels: list[str], dist_matrix
     longest_name = max(name_lengths)
     left_space = " " * longest_name
 
-    # make a header line showing species names along the top of the matrix
+    # make a copy of the list so we can format its elements to show along the top of the matrix
     labels = [species_name for species_name in seq_labels]
     # add spaces to make species names align with distances, rounded to nearest 3 decimals
     for i in range(len(labels)):
@@ -109,4 +109,4 @@ def plot_tree(tree: Tree, image_path: Path, gene_name: str) -> None:
     plt.title(f"Phylogenetic tree based on {gene_name}")
 
     plt.savefig(image_path)
-    plt.show()
+    # plt.show()

@@ -50,7 +50,7 @@ def make_dist_matrix(species_names: list[str], seq_dict: dict[str, str]) -> np.n
 
             # calculate the distance between the two species' sequences
             # TODO: decide later if I want to use a different distance metric
-            curr_dist = td.smith_waterman.normalized_distance(seq_dict[curr_one], seq_dict[curr_two])
+            curr_dist = td.jaccard.normalized_distance(seq_dict[curr_one], seq_dict[curr_two])
             # this produces distances between 0 and 1 by normalizing for the length of the aligned string
 
             # now update the distance matrix at position i,j and at j,i

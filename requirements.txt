@@ -1,10 +1,12 @@
 ==Required packages==
 Argparse
-Bio
+Bio 1.8.1
+biopython 1.87
 collections.defaultdict
 json
-numpy
+matplotlib 3.10.8
+numpy 2.2.6
 Pathlib
-textdistance
+textdistance 4.6.3
 
-Last updated 4/15/2026 3:25p. EST
+Last updated 4/16/2026 11:35p. EST

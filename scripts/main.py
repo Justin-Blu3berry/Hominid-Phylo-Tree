@@ -82,13 +82,13 @@ if __name__ == "__main__":
         # read the sequences for all species' copies of this gene
         curr_fasta = data_path / f"{gene}.fna"
         seq_dict = read_fasta(curr_fasta)
-        print({key: len(value) for key, value in seq_dict.items()})
+        # print({key: len(value) for key, value in seq_dict.items()})
 
         print(f"Progress, {gene}: building distance matrix...")
 
         # if any species failed to pull up a sequence for this gene during data download, we want to safely ignore
         # the species in question
-        seq_labels[gene] = [species for species in list_species if species in seq_dict]
+        seq_labels[gene] = [species for species in list_species if species in seq_dict.keys()]
         
         # tell the user if a species lacks a sequence for a given gene
         curr_excluded = set(list_species).difference(seq_labels[gene])
@@ -108,8 +108,8 @@ if __name__ == "__main__":
         print(f"Progress, {gene}: writing Newick string and distance matrix to file...")
 
         # make a path for the output file
-        output_path = output_dir / f"{gene}_outputs.text"
-        write_outputs(output_path, curr_tree, seq_labels, dist_matrix)  # type: ignore
+        output_path = output_dir / f"{gene}_outputs.txt"
+        write_outputs(output_path, curr_tree, seq_labels[gene], dist_matrix)  # type: ignore
 
         print(f"Progress, {gene}: saving image of generated tree...")
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
     print("Progress: writing matrix and resulting tree to file...")
     # make a path for the output file
-    output_path = output_dir / "mean_outputs.text"
+    output_path = output_dir / "mean_outputs.txt"
     write_outputs(output_path, curr_tree, seq_labels[genes[0]], mean_matrix)  # type: ignore
 
     print("Progress: saving image of tree generated with mean distance matrix...")

@@ -3,11 +3,25 @@ My final project for BINF6251
 
 If I uploaded the wrong link to the Canvas assignment, follow [this link](https://github.com/Justin-Blu3berry/Hominid-Phylo-Tree/pull/2) to the peer review pull request
 
+Last updated: 04/16/2026 at 11:53p. EST
+Current report progress: Work in progress
+
 ## Project Overview
-Still working on this as of 04/15/2026 at 4:22 pm. EST, I unfortunately have class right now so I can't quite finish the report. 
+When creating a phylogenetic tree using a distance-based treebuilding algorithm, the tree's topology is dependent on the distances between all of the species in the analysis; however, it is not practical to use each species's entire genome when calculating these distances. As a result, the distances between the species tend to be proxied by calculating the distances between each species's sequence for a given gene. The question that I sought to answer in this project was to what degree the topology of a phylogenetic tree is affected by the choice of which gene is used to calculate interspecies distances. 
+
+*TODO*: this feels super circular, repetitive, and ultimately not that well-worded
+
+The algorithm of choice for this project was the Neighbor Joining algorithm. 
+
+The type of data and main outputs.
 
 ## Installation & Setup
+Step-by-step instructions to set up the environment, including:
+Python version (and other relevant tools, if any).
+How to install dependencies (e.g., via pip, conda).
+Any system-level requirements (if applicable).
 
+This project was written and tested using Python 3.10.12, and the package manager of choice was pip 22.0.2. 
 ## Quick-Start
 Pip-install all packages listed in `requirements.txt`
 ### For use with toy data
@@ -25,9 +39,9 @@ After generating the toy data, run the analysis from the root of the project dir
 Note that --indir and --outdir are optional and will check the working directory for directories named `data` and `outputs` if nothing is provided, and it will attempt to make these directories if they aren't found. However, the functionality to run `toy_data_generator` and `data_download` after creating the data directory from scratch has yet to be implemented, so it is advised that you point the script to a data directory with the sequences of interest or that you put the sequences of interest into `data/`.  
 This will produce the follwing in the `outputs/` directory:  
 
-- `<gene_name>_outputs.text`: a plaintext file containing the Newick string representation of the tree constructed using the species' sequences for this gene and the distance based on that gene. One of these will exist for each gene specified in `toy_config.json`.  
+- `<gene_name>_outputs.txt`: a plaintext file containing the Newick string representation of the tree constructed using the species' sequences for this gene and the distance based on that gene. One of these will exist for each gene specified in `toy_config.json`.  
 - `<gene_name>_tree.png`: a png file showing the tree generated based on the family's sequences for the given gene.  
-- `mean_outputs.text`: a plaintext file containing a the Newick string representation of a tree and the distance based the average of each position on all genes' distance matrices (i.e. the mean matrix's value at i,j is equal to the mean of all the distance matrices' values at position i,j). The resulting distance matrix and tree essentially account for all of the genes by coming up with what the "average" distances between two given species is when looking at all of the genes of interest. Currently, it requires all of the distance matrices to have the same shape, necessitating that each species have sequences for every gene in the analysis.  
+- `mean_outputs.txt`: a plaintext file containing a the Newick string representation of a tree and the distance based the average of each position on all genes' distance matrices (i.e. the mean matrix's value at i,j is equal to the mean of all the distance matrices' values at position i,j). The resulting distance matrix and tree essentially account for all of the genes by coming up with what the "average" distances between two given species is when looking at all of the genes of interest. Currently, it requires all of the distance matrices to have the same shape, necessitating that each species have sequences for every gene in the analysis.  
 
 At present, a message prints to the terminal when any species are missing sequences to flag the user to what species are missing sequences so they can be removed from the analysis or so their sequences can be obtained. In a future version, the script will dynamically determine what sequences each species is missing (if any) and exclude the corresponding matrix when trying to determine the species in question's mean distances to each other node (e.g. *Gorilla beringei* is missing a sequence for ACE2. The ACE2 matrix, lacking a column for *Gorilla beringei*, is then not included when determining the mean distance between *Gorilla beringei* and anything else). 
 
@@ -37,3 +51,16 @@ Create a directory named `data` in the root of the project directory
 Download data using `python scripts/data_download.py --config config.json --outdir data/` 
 
 Note: you can edit the gene names and species being searched for my editing `config.json` directly, but results aren't guaranteed, as the tree based on the mean of each interspecies distance will not generate if any species lack sequences for any of the genes, and the NCBI search terms were weirdly sensitive during testing. 
+
+# TODO: finish this section
+
+## Usage and Options
+Brief documentation for:
+Main scripts or functions (what they do, required/optional arguments).
+Any configuration files or parameters that significantly affect behavior.
+If applicable, provide one or two example command lines beyond the Quick Start that showcase typical usage patterns.
+
+## Limitations and Assumptions
+A concise discussion of:
+Key assumptions made about inputs, data distributions, or usage contexts.
+Known limitations (e.g., scalability, sensitivity to parameters, cases where the algorithm fails or is unreliable).

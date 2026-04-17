@@ -145,7 +145,7 @@ if __name__ == "__main__":
             for species_name in list_species:
 
                 # query NCBI to find a DNA sequence in fasta format for the named gene and species
-                curr_entry = search_sequence(species_name, gene_name, verbose=True)
+                curr_entry = search_sequence(species_name, gene_name)
                 # the formatting we get from NCBI automatically separates header and sequences for us
                 outfile.write(curr_entry)
             
