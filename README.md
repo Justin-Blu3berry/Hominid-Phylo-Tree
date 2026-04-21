@@ -3,17 +3,17 @@ My final project for BINF6251
 
 If I uploaded the wrong link to the Canvas assignment, follow [this link](https://github.com/Justin-Blu3berry/Hominid-Phylo-Tree/pull/2) to the peer review pull request
 
-Last updated: 04/16/2026 at 11:53p. EST
-Current report progress: Work in progress
+Last updated: 04/21/2026 at 12:00a. EST
+Current report progress: FINAL_REFLECTION.md and TESTING.md have yet to be completed
 
 ## Project Overview
-When creating a phylogenetic tree using a distance-based treebuilding algorithm, the tree's topology is dependent on the distances between all of the species in the analysis; however, it is not practical to use each species's entire genome when calculating these distances. As a result, the distances between the species tend to be proxied by calculating the distances between each species's sequence for a given gene. The question that I sought to answer in this project was to what degree the topology of a phylogenetic tree is affected by the choice of which gene is used to calculate interspecies distances. 
+When creating a phylogenetic tree using a distance-based treebuilding algorithm, the tree's topology is dependent on the distances between all of the species in the analysis; however, it is not practical to use each species's entire genome when calculating these distances. As a result, the distances between the species tend to be proxied by calculating the distances between each species's sequence for a given gene. 
 
-*TODO*: this feels super circular, repetitive, and ultimately not that well-worded
+The question that I sought to answer in this project was to what degree the topology of a phylogenetic tree is affected by the choice of which gene is used to calculate interspecies distances. 
 
 The algorithm of choice for this project was the Neighbor Joining algorithm. 
 
-The type of data and main outputs.
+My script takes sequence data as inputs in the form of fasta files, where each gene of interest gets its own file and has an entry for each species of interest. A configuration json file is used by the main driver script to point to what fasta files should be read for analysis. The main driver script will generate a series of plaintext files in the outputs directory with names following the format `<gene_name>_outputs.txt`, one for each gene, containing the pretty-printed distance matrix derived from that gene's sequences and the Newick string representation of the phylogenetic tree constructed using those distances. It will also generate an image of the aforementioned tree. Finally, it also generates a "mean" distance matrix, which contains a mean distance for each pair of species in the analysis, as calculated using that pair's distance on each gene's distance matrix. The resulting distance matrix and a diagram of the resulting tree are saved to a text file as `mean_outputs.txt` and `mean_tree.png`. 
 
 ## Installation & Setup
 Step-by-step instructions to set up the environment, including:
@@ -21,9 +21,13 @@ Python version (and other relevant tools, if any).
 How to install dependencies (e.g., via pip, conda).
 Any system-level requirements (if applicable).
 
-This project was written and tested using Python 3.10.12, and the package manager of choice was pip 22.0.2. 
+This project was written and tested using Python 3.10.12, and the package manager of choice was pip 22.0.2. I recommend pip-installing all packages listed with a version number in `requirements.txt` into your virtual environment. Anything without a listed version is a part of the standard Python library and does not need to be pip-installed. 
+
+From the repo, download the `scripts/` directory and its contents, `config.json`, and `toy_config.json`. 
+
+I designed this project's scripts to be run from the command line in the root of the project's directory, which ensures that `data/` and `outputs/` directories will be created outside of the `scripts/` directory. 
+
 ## Quick-Start
-Pip-install all packages listed in `requirements.txt`
 ### For use with toy data
 Create a directory named `data` in the root project directory  
 Generate data files by running in the root project directory `python scripts/toy_data_generator.py --outdir data/`  
@@ -52,15 +56,48 @@ Download data using `python scripts/data_download.py --config config.json --outd
 
 Note: you can edit the gene names and species being searched for my editing `config.json` directly, but results aren't guaranteed, as the tree based on the mean of each interspecies distance will not generate if any species lack sequences for any of the genes, and the NCBI search terms were weirdly sensitive during testing. 
 
-# TODO: finish this section
+Now, you are ready to run the analysis from the root of the project directory: `python scripts/main.py --config toy_config.json --indir data/ --outdir outputs/`. The same output files will be generated here as with the toy data in the previous section, with the main difference being the number of genes in the analysis and which species are used. 
 
 ## Usage and Options
-Brief documentation for:
-Main scripts or functions (what they do, required/optional arguments).
-Any configuration files or parameters that significantly affect behavior.
-If applicable, provide one or two example command lines beyond the Quick Start that showcase typical usage patterns.
+
+The scripts that a user would want to run are:
+- `scripts/toy_data_generator.py` to generate the testing data that can be used to demonstrate treebuilding functionality. 
+- `scripts/data_download.py` to download fasta sequences that are used to build phylogenetic trees. 
+- `scripts/main.py` to build the trees for the species of interest using their respective sequences for the genes of interest. 
+
+These scritps are run from the command line while in the root of the project directory (the parent to the `scripts/` directory) to ensure that the `data/` and `outputs/` directories are not created inside of the `scripts/` directory (though if you ran all of these while your working directory was set to `scripts/`, nothing would break). Usage of these scripts is demonstrated in the previous section. 
+
+All three of these scripts require a configuration file to run from the command line. Config files are expected to be json files with the fields: "API_key", "list_gene_names", "list_species", and "email". 
+
+`toy_config.json` only requires "list_gene_names" and "list_species" to be filled out, as it's intended use is with the script `toy_data_generator.py` and with `main.py`. Since this script makes a hard-coded tree structure to determine which sequences are inherited by which species during the simulated sequence evolution, it is advised that the species names in this config file are never changed. However, the number of toy genes and their names can be changed however you please. 
+
+`config.json` is provided in the repo as a template for the user, and all of its fields are required when used to download sequences via `data_download.py`. The user's requests for sequence data from NCBI's nucleotide database will be rate-limited if they don't have an API key, and I haven't tested if that impedes funcitonality, so I recommend making an account on NCBI's website and generating an API key. Your email is also required by the Entrez package whenever making a request. When used with `main.py`, only "list_gene_names" and "list_species" are required, as the other two fields only matter for the NCBI queries in the download script. There needs to be at least one gene in "list_gene_names" so an output can be generated, and there need to be at least four species in "list_species" so that the Neighbor Joining algorithm can resolve the tree. 
+
+!!! IMPORTANT !!!!
+Any time you add or remove either species or genes in your config file, run `data_download.py` using that config file before then running `main.py`. 
+
+This ensures that the genes and species in the config file actually have data for `main.py` to use. 
 
 ## Limitations and Assumptions
-A concise discussion of:
-Key assumptions made about inputs, data distributions, or usage contexts.
-Known limitations (e.g., scalability, sensitivity to parameters, cases where the algorithm fails or is unreliable).
+Most of the assmuptions that I made during this project related to the files and the data that the user is running the scripts with. 
+#### Assumptions made about inputs
+- The user remembered to download their data files before running `main.py`.
+- Each input file contains a header for every species listed in the config file
+- An input file exists for each gene in the config file
+- The user has not changed the key names in their config file
+In the interest of time, I had to cut a lot of the file validation functions that would allow these to be handled. 
+#### Assumptions made during data download
+- A sequence of length longer than the cutoff (50,000 bp by default) is a contig, scaffold, or a whole assembly, and anything shorter is a gene sequence. This may be more adequately addressed by reading the header for the fasta sequence to check for terms like "full-genome", "reference", "complete", "shotgun", etc. that indicate a sequence is more than just a gene, though it comes with the downside of downloading each candiate sequence before checking if it's too long to use, which risks time and memory inefficiency. 
+- All species in the config file have sequences (observed or predicted) for each of the genes of interest
+- The names for the genes of interest are correct (the NCBI nucleotide database is VERY particular about gene names)
+- The first result on the nucleotide database that fulfills the length requirement (<= the cuttoff length) is the right sequence for the gene + species combo that we're looking for.  
+This ignores the potential of being from an experimental assembly, rather than that species's widly-accepted reference assembly. This also ignores the potential of an mRNA transcript being the first result (databases like nucleotide tend to use T instead of U in RNA sequences), which means that the potential effects of alternative splicing on the subsequent alignments are ignored. 
+
+#### Assumptions made by the "mean" matrix
+- All of the genes' distance matrices have the same shape and the same list of species on them
+- A species in the config file is either missing sequences for NONE of the genes, or it's missing sequences for ALL of the genes (no tolerance for in-between)
+In the interest of time, I've had to defer making `get_mean_matrix()` actually check which species are on each tree to correctly identify each species's row and column on each distance matrix. This forces it to assume that each tree's distance matrix has the same list of species on it. 
+#### Assumptions made in tree-building
+- The distance matrices are additive, this is an unavoidable assumption inherent to the algorithm I chose
+- Distance calculations are calculated assuming the lowest possible number of mutations required for one sequence to become another. This is another somewhat unavoidable assumption that we make because mutations that occurred and were overwritten by future mutations have no way of being detected. 
+- There are more than three species in the analysis. This assumption has to be made because at 3 species, the Q-matrix cannot resolve which species is the outgroup (see `IMPLEMENTATION.md` for details), and at 2 or fewer species, nothing on the tree can be resolved. 
