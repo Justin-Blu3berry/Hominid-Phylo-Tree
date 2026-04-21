@@ -3,8 +3,8 @@ My final project for BINF6251
 
 If I uploaded the wrong link to the Canvas assignment, follow [this link](https://github.com/Justin-Blu3berry/Hominid-Phylo-Tree/pull/2) to the peer review pull request
 
-Last updated: 04/21/2026 at 12:00a. EST
-Current report progress: FINAL_REFLECTION.md and TESTING.md have yet to be completed
+Last updated: 04/21/2026 at 6:00p. EST
+Current report progress: FINAL_REFLECTION.md (one section left) and TESTING.md have yet to be completed
 
 ## Project Overview
 When creating a phylogenetic tree using a distance-based treebuilding algorithm, the tree's topology is dependent on the distances between all of the species in the analysis; however, it is not practical to use each species's entire genome when calculating these distances. As a result, the distances between the species tend to be proxied by calculating the distances between each species's sequence for a given gene. 
@@ -54,8 +54,6 @@ Create a directory named `data` in the root of the project directory
 
 Download data using `python scripts/data_download.py --config config.json --outdir data/` 
 
-Note: you can edit the gene names and species being searched for my editing `config.json` directly, but results aren't guaranteed, as the tree based on the mean of each interspecies distance will not generate if any species lack sequences for any of the genes, and the NCBI search terms were weirdly sensitive during testing. 
-
 Now, you are ready to run the analysis from the root of the project directory: `python scripts/main.py --config toy_config.json --indir data/ --outdir outputs/`. The same output files will be generated here as with the toy data in the previous section, with the main difference being the number of genes in the analysis and which species are used. 
 
 ## Usage and Options
@@ -69,9 +67,11 @@ These scritps are run from the command line while in the root of the project dir
 
 All three of these scripts require a configuration file to run from the command line. Config files are expected to be json files with the fields: "API_key", "list_gene_names", "list_species", and "email". 
 
-`toy_config.json` only requires "list_gene_names" and "list_species" to be filled out, as it's intended use is with the script `toy_data_generator.py` and with `main.py`. Since this script makes a hard-coded tree structure to determine which sequences are inherited by which species during the simulated sequence evolution, it is advised that the species names in this config file are never changed. However, the number of toy genes and their names can be changed however you please. 
+`toy_config.json` only requires "list_gene_names" and "list_species" to be filled out, as it's intended use is with the script `toy_data_generator.py` and with `main.py`. Since this script makes a hard-coded tree structure to determine which sequences are inherited by which species during the simulated sequence evolution, it is advised that the species names in this config file are never changed. Additionally, since `toy_data_generator.py` generates a predetermined number of genes with a specific naming scheme, I advise not changing the gene names in `toy_config.json` either. 
 
 `config.json` is provided in the repo as a template for the user, and all of its fields are required when used to download sequences via `data_download.py`. The user's requests for sequence data from NCBI's nucleotide database will be rate-limited if they don't have an API key, and I haven't tested if that impedes funcitonality, so I recommend making an account on NCBI's website and generating an API key. Your email is also required by the Entrez package whenever making a request. When used with `main.py`, only "list_gene_names" and "list_species" are required, as the other two fields only matter for the NCBI queries in the download script. There needs to be at least one gene in "list_gene_names" so an output can be generated, and there need to be at least four species in "list_species" so that the Neighbor Joining algorithm can resolve the tree. 
+
+Note: you can edit the gene names and species being searched for my editing `config.json` directly, but results aren't guaranteed, as the tree based on the mean of each interspecies distance will not generate if any species lack sequences for any of the genes, and the NCBI search terms were weirdly sensitive during testing. 
 
 !!! IMPORTANT !!!!
 Any time you add or remove either species or genes in your config file, run `data_download.py` using that config file before then running `main.py`. 

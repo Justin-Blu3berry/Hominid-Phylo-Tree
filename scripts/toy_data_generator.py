@@ -29,6 +29,13 @@ def get_cli_args() -> argparse.Namespace:
                         help="Path to the directory where FASTA files will be written..",
                         required=True)
     
+    # make an argument to get the path to the data directory
+    parser.add_argument("--nseq", "-n",
+                        dest="num_seqs",
+                        type=int,
+                        help="Number of genes to generate sequences for.",
+                        required=False)
+    
     return parser.parse_args()
 
 
@@ -297,10 +304,12 @@ if __name__ == "__main__":
 
     data_path = Path(cli_args.outputs_dir)
 
+    num_seqs = cli_args.num_seqs if cli_args.num_seqs else 5
+
     rng = np.random.default_rng(42)
 
     # generate ancestral sequences
-    ancestral_seqs = generate_ancestral_seqs(rng, desired_len=30)
+    ancestral_seqs = generate_ancestral_seqs(rng, desired_len=30, num_genes=num_seqs)
 
     # initialize
     newick_strings = []
