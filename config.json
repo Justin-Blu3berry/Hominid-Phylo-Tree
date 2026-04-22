@@ -1,6 +1,6 @@
 {
     "API_key":"none",
-    "list_gene_names":["ACE2", "TP53", "Col1A2"],
+    "list_gene_names":["ACE2", "TP53", "Col1A2", "LCT", "SRY", "ATP5MK"],
     "list_species":["homo sapiens", "Pan troglodytes", "Gorilla gorilla", "Pan paniscus", "Pongo abelii", "Pongo pygmaeus"],
     "email":"none"
 }

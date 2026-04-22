@@ -391,7 +391,7 @@ if __name__ == "__main__":
     # gene whose sequences show A and D's common ancestor maintaining ancestral state, B and C's ancestor having a mutation, and
     # A+D and B+C each developing another mutation independent of each other (assume ancestral state is ATAAAAA)
     gene_one = {"species_A": "ATTGAAA",
-                "species_B": "AAAACGA",
+                "species_B": "AGAACGA",
                 "species_C": "ATAACGA",
                 "species_D": "ATAGAAA"}
     # gene whose purpose is to see what happens if a mutation in B+C's ancestor is inverted in either of B or C

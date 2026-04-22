@@ -3,7 +3,7 @@
 # imports
 import argparse
 import numpy as np
-from textdistance import smith_waterman
+from textdistance import jaccard
 from pathlib import Path
 
 from tree_objects import Node, Tree
@@ -287,7 +287,7 @@ def evolve_sequences(tree: Tree,
                 sequences[child.name] = child_seq
 
                 # calculate the "true" limb length for the child based on the Smith Waterman alignment with its parent
-                curr_limb_length = smith_waterman.normalized_distance(child_seq, parent_seq)
+                curr_limb_length = jaccard.normalized_distance(child_seq, parent_seq)
                 # overwrite the limb length recorded for this node on the tree
                 child_node = tree.nodes[child.name]
                 child_node.limb_length = curr_limb_length
