@@ -3,8 +3,8 @@ My final project for BINF6251
 
 If I uploaded the wrong link to the Canvas assignment, follow [this link](https://github.com/Justin-Blu3berry/Hominid-Phylo-Tree/pull/2) to the peer review pull request
 
-Last updated: 04/21/2026 at 6:00p. EST
-Current report progress: FINAL_REFLECTION.md (one section left) and TESTING.md have yet to be completed
+Last updated: 04/22/2026 at 4:55p. EST
+Current report progress: reports are completed
 
 ## Project Overview
 When creating a phylogenetic tree using a distance-based treebuilding algorithm, the tree's topology is dependent on the distances between all of the species in the analysis; however, it is not practical to use each species's entire genome when calculating these distances. As a result, the distances between the species tend to be proxied by calculating the distances between each species's sequence for a given gene. 

@@ -16,7 +16,7 @@ The fact that the toy data comes out generally well points to the tree building 
 
 While I was working with `Phylo`'s documentation to understand the process of printing a tree, I discovered that the `Phylo` package has functionality for calculating a distance matrix and for constructing a tree. I would like to try using that as a comparison point for my outputs, as that would allow me to more clearly diagnose if the issue is the treebuilding logic as I impemented it or if it is being driven by the quality of my data. This gives me another future direction to take this project in after the semester ends. 
 
-Last updated: 04/21/2026 at 4:01p. EST
+Last updated: 04/22/2026 at 4:55p. EST
 
 ## References: 
 Pontzer, H. (2012). Overview of hominin evolution. Nature.com. https://www.nature.com/scitable/knowledge/library/overview-of-hominin-evolution-89010983/  

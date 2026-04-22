@@ -1,5 +1,5 @@
-Last edited: 04/21/2026 6:00p. EST
-Current status: one section left
+Last edited: 04/22/2026 4:55p. EST
+
 # What Went Right
 The process of implementing the core treebuilding logic and printing out the trees went very smoothly. I found that testing using a small number of hand-made sequences that are meant to test specific edge cases during tree construction produced the exact tree topology that I expected. Further, the process for simulating evolution to generate the testing sequences via `toy_data_generator.py` was very satisfying to make, and it further demonstrated that the treebuilding logic worked as intended. The toy data itself varies the mutation rates between all the genes to model conservation, and I found that the individual trees for each of the genes had a lot of variance, but as the number of allowed mutations between ancestor and descendant increased, the trees generally became more reasonable. This and the stark differences between the trees for the hominid species demonstrated to me that the gene choice has a huge impact on tree generation. 
 
