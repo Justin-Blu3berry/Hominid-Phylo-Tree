@@ -97,6 +97,7 @@ class Tree:
         if children:
             self.edges[new_node] = children
 
+
     def change_node_name(self, node_to_change: Node, new_name: str) -> None:
         """
         Function to change the name of a node object on the graph
@@ -112,6 +113,41 @@ class Tree:
             child.parent_name = new_name
         
     
+    def get_node(self, node_name: str) -> Node | None:
+        """
+        Function to search for a Node on the tree by its name, returns none if it fails to find
+        """
+        # check if the named node is actually on the graph
+        if node_name in self.nodes:
+            return self.nodes[node_name]
+        else:
+            return None
+
+
+    def get_children(self, parent_name: str, returns_objects: bool = False) -> list[Node | str] | None:
+        """
+        Function to search for the list of nodes that are children to the named node
+        Returns the list of children as either a list of the nodes' names or as a list of the node objects themselves
+        """
+        # check if the named parent is even on the graph
+        if parent_name not in self.nodes:
+            return None
+
+        parent_node = self.get_node(parent_name)
+
+        # look up the children
+        child_nodes = self.edges[parent_node]
+
+        if not returns_objects:
+            # we want to return the list of the children's names
+            child_names = [child.name for child in child_nodes]
+            return child_names
+        
+        else:
+            # we're fine just returning the list of node objects
+            return child_nodes
+
+
     def get_parentless_nodes(self) -> list[Node]:
         """
         Function to identify nodes on the graph that don't have any parents (and therefore belong on self.top_layer)
